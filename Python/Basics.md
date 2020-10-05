@@ -129,12 +129,6 @@
 
 - set的内容无序(元素没有索引), 内容无重复
 
-- set的快速生成
-
-  ```python
-  s1 = {i*j for i in range(3) if i % 2 == 0 for j in range(3) if j % 2 == 1}
-  ```
-
 - set的运算
 
   - `-`: 表示差集
@@ -171,9 +165,6 @@
       print(k, v)
   ```
 
-- dict的快速生成
-
-  - `dict2 = {k:v for k,v in dict1.items() if v % 2 == 0}`
 
 ### None
 
@@ -340,9 +331,10 @@
 - 参数排列顺序
 
   1. 普通参数(关键字参数)
-  2. 默认参数
   3. 一个`*`的收集参数
   4. 两个`*`的收集参数
+  
+  - 其中默认参数可在除了普通参数之前的任何位置
 
 # 类与对象
 
@@ -439,7 +431,7 @@
 
     - 当遇到`对象[key]`或者`对象[key1:key2]`语法时调用
 
-  - `setitem`方法
+  - `__setitem__`方法
 
     - 当遇到`对象[key] = value`或`对象[key1:key2] = value1, value2, ...`语法时调用
 
@@ -556,3 +548,408 @@ class A(B): # A类继承B类
 
 - isinstance判断一个对象是否为一个类的实例
 - issubclass判断一个类是否为另一个类的子类
+
+# 模块与包
+
+## 模块
+
+- 定义
+  
+  - 模块是一个包含Python代码的文件(.py)
+  
+- 命名空间
+  - 每个模块都具有自己的命名空间
+  - 在使用模块中的内容时需要在内容前注明其所属命名空间
+  
+- 模块中可以包括的内容
+  - 函数
+  - 类
+  - 测试代码
+  
+- 模块名
+
+  - 模块名就是文件名
+
+- import
+  - `import <模块名>`: 引入模块, 通过`<模块名>.<内容>`使用模块
+  - `import <模块名> as <别名>`: 引入模块, 通过`<别名>.<内容>`使用模块
+  - `from <模块名> import <某内容>`: 只引入模块的某个内容, 引入后该内容进入当前命名空间
+  
+- `if __name__ == '__main__'`
+  - 引入模块相当于在解释语句时将该模块的代码全部解释一遍, 因此除了声明代码, 非声明的代码(如调用print函数打印一句话)也会被解释, 而这通常是我们不希望的
+  - 可使用`if __name__ == '__main__'`来判断正在解释的模块是否为主模块, 若不是则不执行模块中非声明的代码
+  
+- import非法命名的模块
+
+  - 因为模块其本身是一个文件, 因此命名只需要遵循操作系统的命名规范, 这就有可能出现模块名在Python的命名规范中非法的情况
+
+  - import此类模块可以借助importlib包
+
+    ```python
+    import importlib
+    # import 233 非法的模块名 as my_module
+    my_module = importlib.import_module('233 非法的模块名')
+    ```
+
+- 模块的搜索路径与加载顺序
+
+  - 模块的搜索路径
+
+    - 模块的搜索路径在sys模块中可以获取
+
+    ```python
+    import sys
+    
+    print(sys.path) # 查看模块的搜索路径
+    sys.path.append('路径') # 添加新的搜索路径
+    ```
+
+    
+
+  - 模块的加载顺序
+
+    1. 内存中已经加载好的
+    2. Python内置模块
+    3. 搜索sys.path中的路径
+
+## 包
+
+- 定义
+  - 包是存放模块的文件夹
+- 包可以嵌套
+- `__init__.py`
+  - 每个包中都必须包含`__init__.py`文件(只有当文件夹中存在`__init__.py`时才会被认为是一个包)
+  - 当`import <包名>`时, 只会执行该包中的`__init__.py`
+  - 因此通常通过在`__init__.py`中添加该包中的子包和模块的导入代码来达到简化导入的目的
+- `__all__`
+  - 在进行`from <包> import *`时, 若在该包的`__init__.py`中定义了`__all__`, 则导入会根据`__all__`的内容来进行
+
+## import总结
+
+- 当import的主体是包时
+  - `import <包>`
+    - 执行该包中的`__init__.py`
+  - `from <包> import *`
+    - 根据`__init__.py`中的`__all__`来import
+  - `from <包> import <模块1>, <模块2>, ...`
+- 当import的主体是模块时
+  - `import <包>.<模块> [as <别名>]`
+  - `from <模块> import *`
+  - `from <模块> import <内容1>, <内容2>, ...`
+- 当import的主体是模块中的某个内容时
+  - `import <包>.<模块>.<内容>`
+
+# 文件
+
+- open
+
+  - `open(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None)`
+
+  - 其中file可以是字符串
+
+  - mode
+
+    >```
+    >========= ===============================================================
+    >Character Meaning
+    >--------- ---------------------------------------------------------------
+    >'r'       open for reading (default)
+    >'w'       open for writing, truncating the file first 注：会覆盖以前的内容，且当该文件不存在时，自动新建一个文件
+    >'x'       create a new file and open it for writing 注：当文件存在时，会报错
+    >'a'       open for writing, appending to the end of the file if it exists 注：且当该文件不存在时，自动新建一个文件
+    >'b'       binary mode
+    >'t'       text mode (default)
+    >'+'       open a disk file for updating (reading and writing)
+    >'U'       universal newline mode (deprecated)
+    >========= ===============================================================
+    >```
+
+  - open函数在打开文件后会返回一个stream对象(根据不同的mode返回的对象不同), stream对象在使用完毕后需要close
+
+- TextIO
+
+  - 当调用open函数, 并且传入的mode为非binary读取时, 得到的返回值为TextIO对象
+  - `read(self, size=-1, /)`
+  - `readline(self, size=-1, /)`
+  - `readlines(self, hint=-1, /)`
+  - `write(self, text, /)`
+  - `writelines(self, lines, /)`
+  - `close(self, /)`
+  - encoding
+    - Encoding of the text stream
+
+- with语句
+
+  - with语句可以帮助管理open函数返回的stream对象(在使用完毕后自动close, 类似于Java的try-with-resource)
+
+  ```python
+  with open('文件路径', 'r') as f: # 将open的返回值赋值给f
+      # 操作...
+  # 当with中的语句块执行完毕后自动关闭stream对象
+  ```
+
+# 序列化
+
+- pickle模块
+  - `dump(obj, file, protocol=None, *, fix_imports=True)`
+  - `load(file, *, fix_imports=True, encoding='ASCII', errors='strict')`
+
+- shelve模块
+
+  - shelve存储的是键值对
+
+  - `open(filename, flag='c', protocol=None, writeback=False)`
+
+    - flag
+      - c: 读写
+      - r: 只读
+      - w: 只写
+    - writeback
+      - 当writeback为True时, 通过shelve读入的对象在被修改后会自动写回
+      - 前提是open时允许写操作, 且写回时文件未关闭
+
+  - shelve.open的返回值
+
+    - 返回值的读写操作和dict的操作相同
+    - 读取时key若不存在, 则抛出KeyError异常
+
+  - shelve并发
+
+    - shelve不支持对一个文件并发写入
+    - 但是支持对一个文件并发读取
+
+  - 案例
+
+    ```python
+    import shelve
+    
+    if __name__ == '__main__':
+        with shelve.open('文件路径') as db:
+        	db['one'] = 1
+        	db['two'] = 2
+        with shelve.open('文件路径') as db:
+            print(db['one'])
+            print(db['two'])
+    ```
+
+# 异常/警告
+
+## 异常
+
+- 命名
+  - Python中的异常并不是绝大多数都以Exception结尾
+  - 多数异常以Exception/Error结尾, 还有一些异常类并没有一个特定的结尾
+- BaseException
+  - 所有异常的基类
+- Exception
+  - 常规错误的基类
+
+## 警告
+
+- 命名
+  
+- 多数异常以Warning结尾
+  
+- Warning
+  
+- 所有警告的基类
+  
+- 警告不能通过try-catch捕捉, 且打印Warning后也不会使程序终止
+
+- 抑制警告的方法
+
+  ```python
+  import warnings
+  
+  warnings.filterwarnings("ignore")
+  ```
+
+# 多线程
+
+## threading.Thread
+
+- threading.Thread
+  - `__init__(self, group=None, target=None, name=None,args=(), kwargs=None, *, daemon=None)`
+    - target
+      - 指定多线程调用的函数对象
+    - args/kwargs/*
+      - 函数的参数
+  - `run(self)`
+  - `start(self)`
+  - `join(self, timeout=None)`
+  - `getName(self)`
+  - `setName(self, name)`
+  - `is_alive(self)`
+  - `isDaemon(self)`
+  - `setDaemon(self, daemonic)`
+  - daemon
+  - name
+
+## 线程同步
+
+- threading.Lock
+  - threading.Lock为不可重入锁
+  - `acquire(blocking=True, timeout=-1) -> bool`
+  - `release()`
+  - `locked() -> bool`
+    - test whether the lock is currently locked
+- threading.RLock
+  - threading.RLock为可重入锁
+  - RLock的操作与Lock相同
+- threading.Semaphore
+  - threading.Semaphore允许至多n个线程处于运行状态
+  - `__init__(self, value=1)`
+    - value: 允许至多value个线程处于运行状态
+  - `acquire(self, blocking=True, timeout=None)`
+  - `release(self)`
+
+## multiprocessing
+
+- multiprocessing不是多线程, 而是为主进程创建一个新的子进程
+
+- multiprocessing.Process
+
+  - `__init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, daemon=None)`
+  - `run(self)`
+  - `start(self)`
+  - `terminate(self)`
+  - `is_alive(self)`
+  - `join(self, timeout=None)`
+
+  - daemon
+  - exitcode
+    - Return exit code of process or `None` if it has yet to stop
+
+# 函数式编程
+
+## 常用的高级函数
+
+- `map(func, *iterables) --> map object`
+  - func可以有一个参数, 为这一次的遍历的值
+  - map的返回值map object是一个可迭代对象(iterable), 可以直接传给list等容器的构造器
+
+- `functools.reduce(function, sequence[, initial]) -> value`
+  - reduce函数在functools模块中
+  - function可以有两个参数, 第一个为上一次的结果, 第二次参数为这一次的遍历的值
+  - 当reduce没有传入initial时, 会将序列的前两个值作为第一次调用function的值
+
+- `filter(function or None, iterable) --> filter object`
+  - function可以有一个参数, 为这一次的遍历的值
+  - filter object是一个可迭代对象
+
+- `sorted(iterable, /, *, key=None, reverse=False)`
+
+  - key解决比较大小的标准(将比较大小的对象转为某个类型后再比较)
+    - 如`key=int`, `key=abs`
+
+- `functools.partial(func, *args, **keywords)`
+
+  - 当函数参数过多, 需简化时, 使用`functools.partial()`可以创建一个新的函数, 这个函数可以固定住原函数的部分参数
+  - 这个新的函数被称为偏函数
+
+  ```python
+  import functools
+  
+  def func(a, b):
+      return a ** b
+  
+  if __name__ == "__main__":
+      func2 = functools.partial(func, b=2)
+      print(func2(5)) # 只需要传入a的值, b的值已经固定为2
+  ```
+
+  
+
+## 装饰器
+
+- 装饰器可以在不修改原函数的情况下, 为函数增加功能
+
+- 装饰器其实就是一个高级函数, 其输入和输出都是一个函数
+
+- 案例
+
+  ```python
+  def my_decorator(f):
+      def decorate(*args, **kwargs):
+          print(233)
+          return f(*args, **kwargs)
+      return decorate
+  
+  @my_decorator
+  def func(i):
+      return i**2
+  
+  if __name__ == "__main__":
+      print(func(5))
+  ```
+
+
+# Iterable/Iterator
+
+- 可迭代对象
+  - 可以使用for遍历
+  - `iter(iterable) -> iterator`
+    - 获得可迭代对象的迭代器
+
+- 迭代器
+
+  - 迭代器一定是可迭代对象
+
+  - `next(iterator[, default])`
+
+    >Return the next item from the iterator. If default is given and the iterator is exhausted, it is returned instead of raising StopIteration.
+
+# Generator生成器
+
+- Generator的本质是Iterator
+
+- 时间换空间
+
+  - Generator每次获得的下一个值都是在被调用时通过特点算法获得的, 不会存储以前的值, 也不会提前计算并存储后面的值
+  - 使用Generator替代容器, 可以使容器O(n)的空间复杂度降为O(1)
+
+- 自定义Generator
+
+  - 使用yield
+  - 当Generator执行到return语句(或语句执行完毕)时, 抛出StopIteration异常
+
+- Generator简化写法
+
+  - `(<返回值> <for语句> <for语句2> ...)`
+
+  - 得到的等价Generator的定义为
+
+    ```python
+    def gen():
+        for语句1:
+            for语句2:
+                ...:
+                    yield 返回值
+    ```
+
+  - 如`(str(i)+' x '+str(j)+' = '+str(i*j) for i in range(1, 10) for j in range(i, 10))`的等价Generator的定义为
+
+    ```python
+    def gen():
+        for i in range(1, 10):
+            for j in range(i, 10):
+                yield str(i)+' x '+str(j)+' = '+str(i*j)
+    ```
+
+- list生成器
+
+  - `[<返回值> <for语句> <for语句2> ...]`
+  - 得到的list等价于`list((<返回值> <for语句> <for语句2> ...))`
+
+- set生成器
+
+  - `{<返回值> <for语句> <for语句2> ...}`
+
+- dict生成器
+
+  - `{<key>: <value> for <key> in...}`
+  - 由于dict的定义(不能存在值相同的key), 当key和value都有一次循环时, 得到的效果为只取内层循环的键值对(前面n-1个key相同的键值对被覆盖)
+
+- Coroutine协程
+  
+  - 协程借助yield语句可以使函数暂停的特性, 可以将一个线程运行出多个线程的效果
